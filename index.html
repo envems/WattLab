@@ -9557,7 +9557,7 @@ function renderRaceReadiness(){
       mkRow('Ultimo sforzo',daysSince<99?daysSince+'g fa':'n/d',daysSince>=2&&daysSince<=4?'var(--green)':'var(--sub)');
   }
   if(gaugeSvg){
-    const CX=40,CY=46,R=30,SW=8;
+    const CX=40,CY=40,R=30,SW=8;
     const pct=score/100;
     const toXY=(a,r)=>({x:CX+r*Math.cos(a),y:CY+r*Math.sin(a)});
     const s=toXY(Math.PI,R),e=toXY(Math.PI+Math.PI*pct,R);
