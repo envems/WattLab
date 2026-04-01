@@ -1328,20 +1328,18 @@ body.landscape .sg-grid{grid-template-columns:1fr 1fr 1fr}
   <div style="margin:8px 10px 0;background:var(--s1);border-radius:18px;border:1px solid var(--border);padding:14px 16px;overflow:hidden">
     <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:11px;letter-spacing:.16em;color:var(--muted);margin-bottom:10px">RACE READINESS</div>
     <div style="display:flex;align-items:center;gap:14px">
-      <!-- Gauge circolare -->
-      <div style="position:relative;width:80px;height:80px;flex-shrink:0;overflow:hidden;border-radius:50%">
-        <svg id="rrGaugeSvg" viewBox="0 0 80 80" style="width:80px;height:80px;display:block;overflow:visible"></svg>
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
-          <span id="rrScore" style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--text);line-height:1">—</span>
-          <span style="font-size:8px;color:var(--muted);letter-spacing:.06em">/100</span>
-        </div>
-      </div>
-      <div style="flex:1;min-width:0">
-        <div id="rrLabel" style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">—</div>
-        <div id="rrDetail" style="display:flex;flex-direction:column;gap:3px"></div>
-      </div>
-    </div>
+<!-- Gauge WHOOP-style -->
+<div style="width:100%;display:flex;justify-content:center;padding:4px 0 8px">
+  <div style="position:relative;width:110px;height:110px">
+    <svg id="rrGaugeSvg" viewBox="0 0 80 80" style="width:110px;height:110px;display:block;overflow:visible"></svg>
+    <div style="display:none"><span id="rrScore">—</span></div>
   </div>
+</div>
+<div style="display:none">
+  <div id="rrLabel"></div>
+  <div id="rrDetail"></div>
+</div>
+
 
   <!-- DISTRIBUZIONE SETTIMANALE TSS -->
   <div style="margin:8px 10px 0;background:var(--s1);border-radius:18px;border:1px solid var(--border);overflow:hidden">
@@ -9579,24 +9577,35 @@ function renderRaceReadiness(){
       mkRow('CTL Fitness',lastCTL.toFixed(0)+'pts','var(--acc)')+
       mkRow('Ultimo sforzo',daysSince<99?daysSince+'g fa':'n/d',daysSince>=2&&daysSince<=4?'var(--green)':'var(--sub)');
   }
-  if(gaugeSvg){
-    // Gauge a semicerchio 240 gradi, contenuto nel viewBox 80x80
-    const CX=40,CY=44,R=28,SW=7;
+ if(gaugeSvg){
+    // WHOOP-style: cerchio ~340 gradi, solo numero al centro
+    const CX=40,CY=40,R=30,SW=8;
+    const GAP=20;
+    const TOTAL=360-GAP;
     const pct=score/100;
     const toRad=d=>d*Math.PI/180;
-    const pt=(deg,r)=>[
-      (CX+r*Math.cos(toRad(deg))).toFixed(1),
-      (CY+r*Math.sin(toRad(deg))).toFixed(1)
+    const ptc=(deg,r)=>[
+      (CX+r*Math.cos(toRad(deg-90))).toFixed(2),
+      (CY+r*Math.sin(toRad(deg-90))).toFixed(2)
     ];
-    const bgS=pt(210,R), bgE=pt(-30,R);
-    const valEndDeg=210+240*pct;
-    const valE=pt(valEndDeg,R);
-    const large=240*pct>180?1:0;
+    const startDeg=GAP/2;
+    const endBgDeg=360-GAP/2;
+    const endValDeg=startDeg+TOTAL*pct;
+    const bgS=ptc(startDeg,R), bgE=ptc(endBgDeg,R);
+    const valE=ptc(endValDeg,R);
+    const largeVal=TOTAL*pct>180?1:0;
+    const glowId='rrGlow'+score;
     gaugeSvg.setAttribute('viewBox','0 0 80 80');
     gaugeSvg.innerHTML=
-      '<path d="M'+bgS[0]+','+bgS[1]+' A'+R+','+R+' 0 1 1 '+bgE[0]+','+bgE[1]+'" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="'+SW+'" stroke-linecap="butt"/>'+
-      (pct>0.01?'<path d="M'+bgS[0]+','+bgS[1]+' A'+R+','+R+' 0 '+large+' 1 '+valE[0]+','+valE[1]+'" fill="none" stroke="'+color+'" stroke-width="'+SW+'" stroke-linecap="butt"/>':'');
+      '<defs><filter id="'+glowId+'" x="-40%" y="-40%" width="180%" height="180%">'+
+        '<feGaussianBlur stdDeviation="2.5" result="blur"/>'+
+        '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+      '</filter></defs>'+
+      '<path d="M'+bgS[0]+','+bgS[1]+' A'+R+','+R+' 0 1 1 '+bgE[0]+','+bgE[1]+'" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="'+SW+'" stroke-linecap="round"/>'+
+      (pct>0.01?'<path d="M'+bgS[0]+','+bgS[1]+' A'+R+','+R+' 0 '+largeVal+' 1 '+valE[0]+','+valE[1]+'" fill="none" stroke="'+color+'" stroke-width="'+SW+'" stroke-linecap="round" filter="url(#'+glowId+')"/>':'')+
+      '<text x="40" y="44" text-anchor="middle" dominant-baseline="middle" font-size="20" font-weight="700" fill="'+color+'" font-family="IBM Plex Mono,monospace">'+score+'</text>';
   }
+
 }
 /* ══════════════════════════════════════════════════════
    DISTRIBUZIONE SETTIMANALE TSS
