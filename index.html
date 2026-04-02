@@ -1593,7 +1593,7 @@ function renderElevation(){
   const cw=W-PL-PR, ch=H-PT-PB;
   const minA=Math.min(...track), maxA=Math.max(...track);
   const range=maxA-minA||1;
-  const svg=$('elev-svg');
+  const svg=$('chart-elev-svg');  
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
   svg.innerHTML='';
 
