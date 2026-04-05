@@ -2752,65 +2752,30 @@ function _renderActBestBody(){
 
   const medalColors = ['#FFD700','#C0C0C0','#CD7F32'];
 
-  // Bottone W/kg al top
-  let actBestWkgMode = false;
-  window.toggleActBestWkgMode = function(){
-    actBestWkgMode = !actBestWkgMode;
-    // Aggiorna i bottoni
-    const wkgBtn = $('actBestWkgBtn');
-    if(wkgBtn) wkgBtn.textContent = actBestWkgMode ? 'Watt' : 'W/kg';
-    const wkgBtn2 = $('actBestWkgBtn2');
-    if(wkgBtn2) wkgBtn2.textContent = actBestWkgMode ? 'Watt' : 'W/kg';
-    _renderActBestBody();
-  };
-  
-  const wkgBtnHtml = `<div style="display:flex;align-items:center;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.08);gap:8px">
-    <div style="width:7px;flex-shrink:0"></div>
-    <span style="font-size:10px;color:var(--muted);width:36px;flex-shrink:0;text-transform:uppercase;font-weight:600">Durata</span>
-    <button onclick="toggleActBestWkgMode()" style="flex:2;background:none;border:1px solid rgba(59,130,246,.3);border-radius:6px;padding:3px 6px;color:var(--acc);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;text-transform:uppercase;transition:all .15s" id="actBestWkgBtn">W/kg</button>
-    <span style="font-size:10px;color:var(--muted);flex:2;text-align:center;text-transform:uppercase;font-weight:600">PR W</span>
-    <button onclick="toggleActBestWkgMode()" style="flex:2;background:none;border:1px solid rgba(59,130,246,.3);border-radius:6px;padding:3px 6px;color:var(--acc);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;text-transform:uppercase;transition:all .15s" id="actBestWkgBtn2">W/kg</button>
-    <span style="font-size:10px;color:var(--muted);width:50px;flex-shrink:0">Data</span>
-  </div>`;
-
-  el.innerHTML = wkgBtnHtml + visibleDurations.map(({ sec, label }) => {
+  el.innerHTML = visibleDurations.map(({ sec, label }) => {
     const bestRec = bestResults.find(r => r.sec === sec);
     const prTop   = pr[sec] || [];
     const prRec   = prTop[0] || null;
 
     const bestW   = bestRec ? bestRec.watts+'W' : '—';
     const bestKg  = bestRec ? (bestRec.watts/WEIGHT).toFixed(2)+' W/kg' : '—';
-    const prW     = prRec ? prRec.watts+'W' : '—';
-    const prKg    = prRec ? (prRec.watts/WEIGHT).toFixed(2)+' W/kg' : '—';
-    
-    // Colonna Best Effort: mostra W o W/kg a seconda della modalità
-    const bestCol = actBestWkgMode ? bestKg : bestW;
-    
-    // Colonna PR: mostra sempre i watt del PR in questo intervallo
-    const prColW = prW;
-    // Colonna PR W/kg: mostra i w/kg del PR in questo intervallo
-    const prColKg = prKg;
 
-    // Medaglia (solo argento e bronzo, no oro)
+    // Medaglia
     let dot = '<div style="width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0"></div>';
     if(bestRec){
-      if(prTop[1] && bestRec.watts >= prTop[1].watts)
+      if(prTop[0] && bestRec.watts >= prTop[0].watts)
+        dot = `<div style="width:7px;height:7px;border-radius:50%;background:${medalColors[0]};box-shadow:0 0 5px rgba(255,215,0,.55);flex-shrink:0"></div>`;
+      else if(prTop[1] && bestRec.watts >= prTop[1].watts)
         dot = `<div style="width:7px;height:7px;border-radius:50%;background:${medalColors[1]};box-shadow:0 0 4px rgba(192,192,192,.4);flex-shrink:0"></div>`;
       else if(prTop[2] && bestRec.watts >= prTop[2].watts)
         dot = `<div style="width:7px;height:7px;border-radius:50%;background:${medalColors[2]};box-shadow:0 0 4px rgba(205,127,50,.4);flex-shrink:0"></div>`;
     }
 
-    const prDate = prRec ? `<span style="font-size:10px;color:var(--muted);text-align:center;width:50px;flex-shrink:0">${prRec.date}</span>` : '<span style="font-size:10px;color:var(--muted);width:50px">—</span>';
-    
-    // Mostra PR W o PR W/kg a seconda della modalità
-    const prDisplay = actBestWkgMode ? prColKg : prColW;
-
-    return `<div style="display:flex;align-items:center;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.03)">
+    return `<div style="display:flex;align-items:center;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.03);justify-content:center">
       ${dot}
-      <span style="font-size:11px;color:var(--muted);width:36px;flex-shrink:0;margin-left:4px">${label}</span>
-      <span style="font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text);flex:2;text-align:center">${bestCol}</span>
-      <span style="font-family:var(--mono);font-size:12px;color:var(--sub);flex:2;text-align:center">${prDisplay}</span>
-      ${prDate}
+      <span style="font-size:11px;color:var(--muted);width:36px;flex-shrink:0;margin-left:4px;text-align:center">${label}</span>
+      <span style="font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text);flex:1;text-align:center">${bestW}</span>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--sub);flex:1;text-align:center">${bestKg}</span>
     </div>`;
   }).join('');
 }
@@ -3373,6 +3338,10 @@ async function setSavedRides(rides) {
       }
     }
   }
+  
+  // Aggiorna i grafici PMC/Training dopo aver salvato le attività
+  if(typeof renderPMC === 'function' && currentPage === 'training') renderPMC();
+  if(typeof renderRaceReadiness === 'function') renderRaceReadiness();
 }
 
 // Load from IndexedDB on startup
@@ -3388,6 +3357,8 @@ async function loadRidesFromIndexedDB() {
     if (typeof renderActivitySavedList === 'function') renderActivitySavedList();
     if (typeof renderLastRideCard === 'function') renderLastRideCard();
     if (typeof renderStreakCard === 'function') renderStreakCard();
+    if (typeof renderPMC === 'function') renderPMC();
+    if (typeof renderRaceReadiness === 'function') renderRaceReadiness();
   }
   return rides;
 }
@@ -5749,20 +5720,17 @@ function switchPage(page){
   }
 
   if(page === 'activity'){
-    // BUG FIX: Se il resoconto mensile era aperto, forza mostra la lista attività
-    // IMPORTANTE: resetta _currentActIndex per evitare che apra attività a caso
+    $('actDot').classList.toggle('show', laps.length > 0);
+    // BUG FIX: Se il resoconto mensile era aperto, forza la visualizzazione della lista
+    // (non aprire un'attività a caso che era caricata precedentemente)
     if(_monthlyWasOpen){
-      _currentActIndex = -1;
-      showActList();
       _monthlyWasOpen = false;
-    } else if(_currentActIndex < 0){
       showActList();
-    } else if(laps.length === 0){
+    } else if(laps.length === 0) {
       showActList();
     } else {
       showActDetail(true);
     }
-    $('actDot').classList.toggle('show', laps.length > 0);
   }
   if(page === 'stats') renderStatsPage();
   if(page === 'training') renderPMC();
@@ -5775,7 +5743,6 @@ function switchPage(page){
 function showActList(){
   // Reset selection but don't destroy loaded data
   sel=-1; selCmp=-1; listEverShown=false;
-  _currentActIndex = -1;  // Reset anche l'indice della attività attuale
   $('actListView').style.display = 'block';
   $('actDetailView').style.display = 'none';
   renderActList();
@@ -7774,8 +7741,8 @@ function renderMR(){
   allDurs.forEach(({s:dur,l:lb})=>{
     const pb=periodBest[dur];if(!pb)return;
     const rank=atBest[dur]?atBest[dur].indexOf(pb.w):-1;
-    const medalColors=['#C0C0C0','#CD7F32'];
-    const dot=rank>=1&&rank<3?`<div style="width:7px;height:7px;border-radius:50%;background:${medalColors[rank-1]};box-shadow:0 0 4px ${medalColors[rank-1]}55;flex-shrink:0"></div>`:`<div style="width:7px"></div>`;
+    const medalColors=['#FFD700','#C0C0C0','#CD7F32'];
+    const dot=rank>=0&&rank<3?`<div style="width:7px;height:7px;border-radius:50%;background:${medalColors[rank]};box-shadow:0 0 4px ${medalColors[rank]}55;flex-shrink:0"></div>`:`<div style="width:7px"></div>`;
     const isExtra=!baseDurs.some(d=>d.s===dur);
     bH+=`<div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03)">
       ${dot}
@@ -7798,12 +7765,12 @@ function renderMR(){
   $('mrNotable').innerHTML=nH||'<div style="font-size:10px;color:var(--muted);font-style:italic">Nessuna uscita</div>';
 }
 function _mrNR(label,val,date,id){
-  return`<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);gap:8px">
-    <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start">
-      <div style="font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">${label}</div>
-      <div style="font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text)">${val}</div>
+  return`<div style="display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.03)">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:1px;text-align:left">${label}</div>
+      <div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);text-align:left">${val}</div>
     </div>
-    <span onclick="_monthlyWasOpen=true;closeMonthlyReport();setTimeout(()=>{switchPage('activity');openActFromList(${id})},50)" style="font-size:11px;color:var(--acc);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;flex-shrink:0;text-align:right;white-space:nowrap">${date}</span>
+    <span onclick="_monthlyWasOpen=true;closeMonthlyReport();setTimeout(()=>{switchPage('activity');openActFromList(${id})},50)" style="font-size:11px;color:var(--acc);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;flex-shrink:0;text-align:right">${date}</span>
   </div>`;
 }
 
@@ -8044,12 +8011,12 @@ function renderStatsRecords(rides){
     { icon:'↑', label:'Più dislivello', val: bestAlt.ascent ? Math.round(bestAlt.ascent)+'m' : '—', date: bestAlt.date, id: bestAlt.id },
   ];
   el.innerHTML = recs.map((r,i)=>{
-    return `<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);justify-content:space-between">
-      <div style="flex:1;min-width:0;padding-right:12px">
-        <div style="font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">${r.label}</div>
-        <div style="font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text)">${r.val}</div>
+    return `<div style="display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.03)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:1px">${r.label}</div>
+        <div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text)">${r.val}</div>
       </div>
-      <span onclick="switchPage('activity');openActFromList(${r.id})" style="font-size:10px;color:var(--acc);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;flex-shrink:0;text-align:right">${r.date}</span>
+      <span onclick="switchPage('activity');openActFromList(${r.id})" style="font-size:11px;color:#3b82f6;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;flex-shrink:0">${r.date}</span>
     </div>`;
   }).join('');
 }
@@ -8292,16 +8259,7 @@ function renderStatsPR(){
     '0 0 4px rgba(205,127,50,.4)'
   ];
 
-  // Header con colonne ben allineate
-  const headerHtml = `<div style="display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.08);gap:4px">
-    <div style="width:7px;flex-shrink:0"></div>
-    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);width:36px;flex-shrink:0;text-transform:uppercase;font-weight:600;letter-spacing:.04em">Durata</span>
-    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);flex:2;text-align:center;text-transform:uppercase;font-weight:600;letter-spacing:.04em">Potenza</span>
-    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);flex:2;text-align:center;text-transform:uppercase;font-weight:600;letter-spacing:.04em">W/kg</span>
-    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);width:60px;flex-shrink:0;text-align:right;text-transform:uppercase;font-weight:600;letter-spacing:.04em">Data PR</span>
-  </div>`;
-
-  el.innerHTML = headerHtml + BEST_EFFORT_DURATIONS.map(({ sec, label }, idx) => {
+  el.innerHTML = BEST_EFFORT_DURATIONS.map(({ sec, label }, idx) => {
     const top3 = pr[sec] || [];
     const rec  = top3[0] || null;
     if(!rec) return '';
@@ -8319,25 +8277,25 @@ function renderStatsPR(){
       const shadow = MEDAL_SHADOW[ri+1];
       const w2  = r2.watts+'W';
       const kg2 = (r2.watts/WEIGHT).toFixed(2)+' W/kg';
-      return `<div id="prSub_${sec}_${ri}" style="display:none;align-items:center;padding:5px 14px;gap:4px">
-        <div style="width:7px;height:7px;border-radius:50%;background:${medal};box-shadow:${shadow};flex-shrink:0"></div>
+      return `<div id="prSub_${sec}_${ri}" style="display:none;align-items:center;padding:5px 14px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${medal};box-shadow:${shadow};flex-shrink:0;margin-right:4px"></div>
         <span style="font-family:var(--mono);font-size:10px;color:var(--muted);width:36px;flex-shrink:0">${ri===0?'2nd':'3rd'}</span>
         <span style="font-family:var(--mono);font-size:13px;font-weight:500;color:var(--sub);flex:2;text-align:center">${w2}</span>
         <span style="font-family:var(--mono);font-size:11px;color:var(--muted);flex:2;text-align:center">${kg2}</span>
-        <span onclick="switchPage('activity');openActFromList(${r2.rideId})" style="font-size:10px;color:var(--acc);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;flex-shrink:0;width:60px;text-align:right">${r2.date}</span>
+        <span onclick="switchPage('activity');openActFromList(${r2.rideId})" style="font-size:11px;color:var(--acc);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;flex-shrink:0">${r2.date}</span>
       </div>`;
     }).join('');
 
-    const medalColor  = '#C0C0C0';
-    const medalShadow = '0 0 4px rgba(192,192,192,.4)';
+    const medalColor  = '#FFD700';
+    const medalShadow = '0 0 6px rgba(255,215,0,.5)';
 
     return `<div style="border-bottom:1px solid rgba(255,255,255,.03)">
-      <div style="display:flex;align-items:center;padding:8px 14px;gap:4px">
-        <div style="width:7px;height:7px;border-radius:50%;background:${medalColor};box-shadow:${medalShadow};flex-shrink:0"></div>
+      <div style="display:flex;align-items:center;padding:8px 14px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${medalColor};box-shadow:${medalShadow};flex-shrink:0;margin-right:4px"></div>
         <span style="font-family:var(--mono);font-size:11px;color:var(--muted);width:36px;flex-shrink:0;display:flex;align-items:center">${label}${expandArrow}</span>
         <span style="font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text);flex:2;text-align:center">${watt}</span>
         <span style="font-family:var(--mono);font-size:12px;color:var(--sub);flex:2;text-align:center">${wkg}</span>
-        <span onclick="switchPage('activity');openActFromList(${rec.rideId})" style="font-size:10px;color:var(--acc);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;flex-shrink:0;width:60px;text-align:right">${date}</span>
+        <span onclick="switchPage('activity');openActFromList(${rec.rideId})" style="font-size:11px;color:var(--acc);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;flex-shrink:0">${date}</span>
       </div>
       ${sub23}
     </div>`;
