@@ -7637,8 +7637,8 @@ function renderPR(){
     const date = rec ? rec.date : '—';
     const isEven = idx % 2 === 0;
     const dateEl = rec
-      ? `<span style="font-size:9px;color:var(--acc);cursor:pointer;white-space:nowrap" title="Apri attività">${date}</span>`
-      : `<span style="font-size:9px;color:var(--muted);white-space:nowrap">—</span>`;
+      ? `<span  style="flex:1;font-size:9px;color:var(--acc);text-align:right;cursor:pointer" title="Apri attività">${date}</span>`
+      : `<span style="flex:1;font-size:9px;color:var(--muted);text-align:right">—</span>`;
     return `<div style="display:flex;align-items:center;padding:8px 16px;${isEven?'background:rgba(255,255,255,.018)':''}">
       <div style="width:7px;height:7px;border-radius:50%;background:#FFD700;box-shadow:0 0 5px rgba(255,215,0,.5);margin-right:8px;flex-shrink:0"></div>
       <span style="width:32px;font-family:var(--mono);font-size:12px;font-weight:400;color:var(--text)">${label}</span>
@@ -7647,7 +7647,7 @@ function renderPR(){
         ${rec?'<span style="font-family:var(--mono);font-size:9px;font-weight:500;color:var(--sub)">W</span>':''}
         ${rec?'<span style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--sub);margin-left:2px">'+wkg+' W/kg</span>':''}
       </div>
-      ${rec?'<div style="width:1px;height:28px;background:rgba(255,255,255,.08);flex-shrink:0;margin:0 8px"></div>':''}
+
       ${dateEl}
     </div>`;
   }).join('');
